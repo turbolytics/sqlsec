@@ -41,8 +41,9 @@ func NewCommand() *cobra.Command {
 			wh := handlers.NewWebhook(queries, logger)
 			nh := handlers.NewNotificationHandlers(queries)
 			rh := handlers.NewRuleHandlers(queries)
+			dh := handlers.NewDestinationHandlers(queries)
 			router := chi.NewRouter()
-			server.RegisterRoutes(router, wh, nh, rh, logger)
+			server.RegisterRoutes(router, wh, nh, rh, dh, logger)
 
 			addr := ":" + port
 			logger.Info("Starting server", zap.String("addr", addr))

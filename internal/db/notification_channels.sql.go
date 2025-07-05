@@ -13,14 +13,15 @@ import (
 )
 
 const createNotificationChannel = `-- name: CreateNotificationChannel :one
-INSERT INTO notification_channels (id, tenant_id, type, config)
-VALUES ($1, $2, $3, $4)
-RETURNING id, tenant_id, type, config, created_at
+INSERT INTO notification_channels (id, tenant_id, name, type, config)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, tenant_id, name, type, config, created_at
 `
 
 type CreateNotificationChannelParams struct {
 	ID       uuid.UUID       `json:"id"`
 	TenantID uuid.UUID       `json:"tenant_id"`
+	Name     string          `json:"name"`
 	Type     string          `json:"type"`
 	Config   json.RawMessage `json:"config"`
 }
@@ -29,6 +30,7 @@ func (q *Queries) CreateNotificationChannel(ctx context.Context, arg CreateNotif
 	row := q.db.QueryRowContext(ctx, createNotificationChannel,
 		arg.ID,
 		arg.TenantID,
+		arg.Name,
 		arg.Type,
 		arg.Config,
 	)
@@ -36,6 +38,7 @@ func (q *Queries) CreateNotificationChannel(ctx context.Context, arg CreateNotif
 	err := row.Scan(
 		&i.ID,
 		&i.TenantID,
+		&i.Name,
 		&i.Type,
 		&i.Config,
 		&i.CreatedAt,
@@ -44,7 +47,7 @@ func (q *Queries) CreateNotificationChannel(ctx context.Context, arg CreateNotif
 }
 
 const getNotificationChannelByID = `-- name: GetNotificationChannelByID :one
-SELECT id, tenant_id, type, config, created_at
+SELECT id, tenant_id, name, type, config, created_at
 FROM notification_channels
 WHERE id = $1
 `
@@ -55,6 +58,7 @@ func (q *Queries) GetNotificationChannelByID(ctx context.Context, id uuid.UUID) 
 	err := row.Scan(
 		&i.ID,
 		&i.TenantID,
+		&i.Name,
 		&i.Type,
 		&i.Config,
 		&i.CreatedAt,
@@ -63,7 +67,7 @@ func (q *Queries) GetNotificationChannelByID(ctx context.Context, id uuid.UUID) 
 }
 
 const listNotificationChannels = `-- name: ListNotificationChannels :many
-SELECT id, tenant_id, type, config, created_at
+SELECT id, tenant_id, name, type, config, created_at
 FROM notification_channels
 WHERE tenant_id = $1
 ORDER BY created_at DESC
@@ -81,6 +85,7 @@ func (q *Queries) ListNotificationChannels(ctx context.Context, tenantID uuid.UU
 		if err := rows.Scan(
 			&i.ID,
 			&i.TenantID,
+			&i.Name,
 			&i.Type,
 			&i.Config,
 			&i.CreatedAt,

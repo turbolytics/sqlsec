@@ -24,6 +24,7 @@ type Alert struct {
 type NotificationChannel struct {
 	ID        uuid.UUID       `json:"id"`
 	TenantID  uuid.UUID       `json:"tenant_id"`
+	Name      string          `json:"name"`
 	Type      string          `json:"type"`
 	Config    json.RawMessage `json:"config"`
 	CreatedAt sql.NullTime    `json:"created_at"`
@@ -42,7 +43,7 @@ type Rule struct {
 	CreatedAt   time.Time      `json:"created_at"`
 }
 
-type RuleNotification struct {
+type RuleDestination struct {
 	RuleID    uuid.UUID `json:"rule_id"`
 	ChannelID uuid.UUID `json:"channel_id"`
 }
