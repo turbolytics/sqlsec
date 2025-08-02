@@ -29,7 +29,9 @@ func NewTestCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to read response body: %w", err)
 			}
+
 			fmt.Println(string(body))
+
 			return nil
 		},
 	}

@@ -43,6 +43,7 @@ CREATE TABLE rules
 );
 
 CREATE INDEX rules_tenant_idx ON rules (tenant_id);
+CREATE UNIQUE INDEX rules_tenant_source_name_idx ON rules (tenant_id, source, name);
 
 -- Notification Channels: Slack, Webhook, Email, etc.
 CREATE TABLE notification_channels

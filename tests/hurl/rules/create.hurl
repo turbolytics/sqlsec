@@ -2,7 +2,7 @@ POST http://localhost:8888/api/rules/
 Content-Type: application/json
 
 {
-  "name": "Test Rule",
+  "name": "testsuite.Test Rule",
   "description": "A test rule for PRs",
   "source": "github",
   "event_type": "pull_request",
@@ -14,7 +14,7 @@ Content-Type: application/json
 HTTP/1.1 201
 [Asserts]
 jsonpath "$.id" exists
-jsonpath "$.name" == "Test Rule"
+jsonpath "$.name" == "testsuite.Test Rule"
 jsonpath "$.description" == "A test rule for PRs"
 jsonpath "$.event_source" == "github"
 jsonpath "$.event_type" == "pull_request"

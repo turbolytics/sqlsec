@@ -1,5 +1,5 @@
 # Create a webhook and extract the id and secret
-POST http://localhost:8888/api/webhooks/create
+POST http://localhost:8888/api/webhooks
 Content-Type: application/json
 {
   "name": "Test Webhook",

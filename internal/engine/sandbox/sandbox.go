@@ -173,7 +173,7 @@ func (s *Sandbox) ExecuteRule(ctx context.Context, rule rules.Rule) (int, error)
 	)
 
 	if err := ruleStmt.SetSqlQuery(rule.Sql); err != nil {
-		return -1, fmt.Errorf("set rule sql: %w", err)
+		return -1, fmt.Errorf("sandbox: set sql query: %w", err)
 	}
 	reader, _, err := ruleStmt.ExecuteQuery(ctx)
 	if err != nil {

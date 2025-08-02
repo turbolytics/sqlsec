@@ -51,6 +51,6 @@ func (s *SlackNotifier) Send(ctx context.Context, cfg map[string]string, msg not
 	return nil
 }
 
-func init() {
-	notify.DefaultRegistry.Register(notify.SlackChannel, &SlackNotifier{})
+func InitializeSlack(reg *notify.Registry) {
+	reg.Register(notify.SlackChannel, &SlackNotifier{})
 }

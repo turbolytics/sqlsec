@@ -3,11 +3,11 @@ POST http://localhost:8888/api/rules/
 Content-Type: application/json
 
 {
-  "name": "List Test Rule",
+  "name": "testsuite.List Test Rule",
   "description": "A rule for list testing",
   "source": "github",
   "event_type": "pull_request",
-  "condition": "state = 'open'",
+  "condition": "select * from events where state = 'open'",
   "evaluation_type": "LIVE_TRIGGER",
   "alert_level": "LOW"
 }
@@ -15,7 +15,7 @@ Content-Type: application/json
 HTTP/1.1 201
 [Asserts]
 jsonpath "$.id" exists
-jsonpath "$.name" == "List Test Rule"
+jsonpath "$.name" == "testsuite.List Test Rule"
 
 # List rules
 GET http://localhost:8888/api/rules/

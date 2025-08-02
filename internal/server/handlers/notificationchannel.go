@@ -7,7 +7,7 @@ import (
 	"github.com/turbolytics/sqlsec/internal"
 	"github.com/turbolytics/sqlsec/internal/db/queries/notificationchannels"
 	"github.com/turbolytics/sqlsec/internal/notify"
-	_ "github.com/turbolytics/sqlsec/internal/notify/slack"
+	"github.com/turbolytics/sqlsec/internal/notify/slack"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -127,4 +127,8 @@ func (h *NotificationHandlers) Test(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Test message sent"))
+}
+
+func init() {
+	slack.InitializeSlack(notify.DefaultRegistry)
 }

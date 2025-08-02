@@ -53,7 +53,8 @@ type TestRuleRequest struct {
 }
 
 type TestRuleResponse struct {
-	Match      bool                   `json:"match"`
+	Match      string                 `json:"match"`
+	Error      string                 `json:"error,omitempty"`
 	AlertLevel string                 `json:"alert_level"`
 	Details    map[string]interface{} `json:"details,omitempty"`
 }
@@ -65,7 +66,7 @@ func (h *RuleHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Validate source
-	if !source.DefaultRegistry.IsEnabled(req.Source) {
+	if !source.DefaultRegistry.IsEnabled(source.Source(req.Source)) {
 		http.Error(w, "unsupported source", http.StatusBadRequest)
 		return
 	}
@@ -235,13 +236,11 @@ func (h *RuleHandlers) Test(w http.ResponseWriter, r *http.Request) {
 	i, err := box.ExecuteRule(ctx, rule)
 	if err != nil {
 		h.logger.Error("failed to execute rule in sandbox", zap.Error(err))
-		http.Error(w, "failed to execute rule", http.StatusInternalServerError)
-		return
 	}
 
 	// TODO: fetch rule, evaluate condition, return result
 	resp := TestRuleResponse{
-		Match:      i > 0,
+		Match:      strconv.FormatBool(i > 0),
 		AlertLevel: rule.AlertLevel,
 		Details: map[string]any{
 			"rule_id":   rule.ID.String(),
@@ -250,6 +249,11 @@ func (h *RuleHandlers) Test(w http.ResponseWriter, r *http.Request) {
 			"event":     testEvent,
 		},
 	}
+
+	if err != nil {
+		resp.Error = err.Error()
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }

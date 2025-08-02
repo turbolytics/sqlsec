@@ -3,11 +3,11 @@ POST http://localhost:8888/api/rules
 Content-Type: application/json
 
 {
-  "name": "Test Active Rule",
+  "name": "testsuite.{{newUuid}}",
   "description": "A rule to test active flag",
   "source": "github",
   "event_type": "pull_request",
-  "condition": "state = 'open'",
+  "condition": "select * from events where state = 'open'",
   "evaluation_type": "LIVE_TRIGGER",
   "alert_level": "MEDIUM"
 }

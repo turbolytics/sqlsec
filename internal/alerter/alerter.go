@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/turbolytics/sqlsec/internal/db/queries/alerts"
+	"github.com/turbolytics/sqlsec/internal/db/queries/events"
 	"github.com/turbolytics/sqlsec/internal/db/queries/rules"
 	"github.com/turbolytics/sqlsec/internal/notify"
 	"go.uber.org/zap"
@@ -16,14 +17,24 @@ import (
 type Alerter struct {
 	alertQueries alerts.Querier
 	ruleQueries  rules.Querier
+	eventQuerier events.Querier
 	notifyReg    *notify.Registry
 	logger       *zap.Logger
 	db           *sql.DB
 }
 
-func NewAlerter(db *sql.DB, alertQ alerts.Querier, ruleQ rules.Querier, notifyReg *notify.Registry, logger *zap.Logger) *Alerter {
+func NewAlerter(
+	db *sql.DB,
+	alertQ alerts.Querier,
+	ruleQ rules.Querier,
+	eventQ events.Querier,
+	notifyReg *notify.Registry,
+	logger *zap.Logger,
+) *Alerter {
+
 	return &Alerter{
 		alertQueries: alertQ,
+		eventQuerier: eventQ,
 		ruleQueries:  ruleQ,
 		notifyReg:    notifyReg,
 		logger:       logger,
@@ -73,8 +84,9 @@ func (a *Alerter) ExecuteOnce(ctx context.Context) error {
 	for _, ch := range channels {
 		notifier, err := a.notifyReg.Get(notify.ChannelType(ch.Type))
 		if err != nil {
-			a.logger.Error("No notifier for channel type", zap.String("type", ch.Type), zap.Error(err))
-			continue
+			// A missing notifier is a fatal error, we should not continue processing
+			a.logger.Fatal("No notifier for channel type", zap.String("type", ch.Type), zap.Error(err))
+			panic("No notifier for channel type: " + ch.Type)
 		}
 		// Parse ch.Config (json.RawMessage) into map[string]any
 		var cfg map[string]string
@@ -83,7 +95,11 @@ func (a *Alerter) ExecuteOnce(ctx context.Context) error {
 			continue
 		}
 		// TODO: Render the alert message, include the source, and the rule SQL, and the Level
-		msg := notify.Message{Title: "Alert", Body: fmt.Sprintf("Alerted from: %d", alert.ID)} // You may want to customize this
+		msg := notify.Message{
+			Title: "Alert",
+			Body:  fmt.Sprintf("Alerted from alert: %s", alert.ID.String()),
+		} // TODO - Render the alert message, include the source, and the rule SQL, and the Level
+
 		deliverErr := notifier.Send(ctx, cfg, msg)
 		status := "delivered"
 		if deliverErr != nil {
@@ -95,14 +111,14 @@ func (a *Alerter) ExecuteOnce(ctx context.Context) error {
 			AlertID:   alert.ID,
 			ChannelID: ch.ID,
 			Status:    status,
-			Error:     sql.NullString{String: deliverErr.Error(), Valid: deliverErr != nil},
 		})
 		if err != nil {
 			a.logger.Error("Failed to insert alert delivery", zap.Error(err))
 		}
 	}
 
-	// TODO - Should be transactional
+	// TODO - Should be transactional, only mark if all deliveries succeeded
+
 	// 5. Update alert_processing_queue status
 	err = a.alertQueries.MarkAlertProcessingDelivered(ctx, alert.ID)
 	if err != nil {

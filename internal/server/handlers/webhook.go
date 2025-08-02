@@ -55,7 +55,7 @@ func (wh *Webhook) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !source.DefaultRegistry.IsEnabled(req.Source) {
+	if !source.DefaultRegistry.IsEnabled(source.Source(req.Source)) {
 		http.Error(w, "unsupported source", http.StatusBadRequest)
 		return
 	}
@@ -162,7 +162,7 @@ func (wh *Webhook) Event(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validator := source.DefaultRegistry.GetValidator(webhook.Source)
+	validator := source.DefaultRegistry.GetValidator(source.Source(webhook.Source))
 	if validator == nil {
 		http.Error(w, "unsupported source", http.StatusBadRequest)
 		return
@@ -173,7 +173,7 @@ func (wh *Webhook) Event(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parser := source.DefaultRegistry.GetParser(webhook.Source)
+	parser := source.DefaultRegistry.GetParser(source.Source(webhook.Source))
 	if parser == nil {
 		http.Error(w, "unsupported source", http.StatusBadRequest)
 		return
